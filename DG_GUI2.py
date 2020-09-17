@@ -104,10 +104,10 @@ def best_match(query, corpus):
     
     return(result)
 
-if query != "":
-    st.header('Top Default Goals')
-    output1 = best_match(query, corpus)
-    st.table(output1) 
+#if query != "":
+st.header('Top Default Goals')
+output1 = best_match(query, corpus)
+st.table(output1) 
 
 init_corpus = tfidf_vect.fit_transform(data2['I_NameDesc'])
 
