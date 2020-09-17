@@ -57,8 +57,9 @@ corpus = tfidf_vect.fit_transform(data['DG_NameDesc'])
 
 
 
-st.header('Customer Goal Name')
+st.title('Customer Goal Name')
 query = st.text_input('Please enter your description here:')
+
 
 #st.sidebar.header('Number of Goals')
 #no_res = st.sidebar.slider('Number of top Default Goals to be displayed:', min_value=1, max_value=30)
@@ -66,7 +67,7 @@ query = st.text_input('Please enter your description here:')
 
 ################## Model Matches ######################
 
-def best_match(query, corpus, no_res=10):
+def best_match(query, corpus):
     
     # Apply tf-idf and cosine similarity for query and corpus
     
@@ -78,14 +79,18 @@ def best_match(query, corpus, no_res=10):
     # Generate table of of top matches
     
     Match_percent = [i*100 for i in cos_df] # calculate percentage of match 
-    matches = sorted([(x,i) for (i,x) in enumerate(Match_percent)], reverse=True)[:no_res] 
+    matches = sorted([(x,i) for (i,x) in enumerate(Match_percent)], reverse=True)
     # index and percentage from cos_df
     idx = [item[1] for item in matches]
     
     matches = [item[0] for item in matches] # get the percentage
     matches = [int(float(x)) for x in matches] # convert to integer from np.array
+    matches =  [i for i in matches if i >= 20] # remove those lower than 20%
     matches = [str(i) for i in matches] # convert int to string for percentage
     matches = list(map("{}%".format, matches))
+
+    # take first n elements of idx to mirror matches
+    idx = idx[:len(matches)]
     
     ### Must list of lists to list of integers
     
@@ -99,13 +104,14 @@ def best_match(query, corpus, no_res=10):
     
     return(result)
 
-st.header('Top Default Goals')
-output1 = best_match(query, corpus)
-st.table(output1) 
+if query != "":
+    st.header('Top Default Goals')
+    output1 = best_match(query, corpus)
+    st.table(output1) 
 
 init_corpus = tfidf_vect.fit_transform(data2['I_NameDesc'])
 
-def best_match_init(query, corpus, no_res = 10):
+def best_match_init(query, corpus):
     
     # Apply tf-idf and cosine similarity for query and corpus
     
@@ -117,7 +123,7 @@ def best_match_init(query, corpus, no_res = 10):
     # Generate table of of top matches
     
     Match_percent = [i*100 for i in cos_df] # calculate percentage of match 
-    matches = sorted([(x,i) for (i,x) in enumerate(Match_percent)], reverse=True)[:no_res] 
+    matches = sorted([(x,i) for (i,x) in enumerate(Match_percent)], reverse=True)
     # index and percentage from cos_df
     idx = [item[1] for item in matches]
     
@@ -172,11 +178,11 @@ def get_initiatives(*selected_indices):
 
 
 
-if output1.shape > (0, 0):
+if query != "" and output1.shape > (0, 0):
     selected_indices = st.multiselect('Select rows:', output1.index) 
 
     if selected_indices:
-        st.header("Linked initiatives:")
+        st.header("Linked Initiatives:")
         output2 = get_initiatives(*selected_indices)
         
         # Best match intiatives
@@ -187,8 +193,9 @@ if output1.shape > (0, 0):
         st.table(output2)
 
         if output2b.empty:
-            st.header("Model results match associated Initiatives as per the Default Goal Catalogue.")
+            st.header("Recommendation Engine results match associated initiatives as per the Default Goal Catalogue.")
         else:
+            st.header("Recommended Engine suggestions not linked in the Default Goal Catalogue:")
             st.table(output2b)
 
     else:
@@ -198,7 +205,7 @@ if output1.shape > (0, 0):
 
 asset_corpus = tfidf_vect.fit_transform(data3['A_NameDesc'])
 
-def best_match_asset(query, corpus, no_res = 10):
+def best_match_asset(query, corpus):
     
     # Apply tf-idf and cosine similarity for query and corpus
     
@@ -210,7 +217,7 @@ def best_match_asset(query, corpus, no_res = 10):
     # Generate table of of top matches
     
     Match_percent = [i*100 for i in cos_df] # calculate percentage of match 
-    matches = sorted([(x,i) for (i,x) in enumerate(Match_percent)], reverse=True)[:no_res] 
+    matches = sorted([(x,i) for (i,x) in enumerate(Match_percent)], reverse=True)
     # index and percentage from cos_df
     idx = [item[1] for item in matches]
     
@@ -268,12 +275,12 @@ def get_assets (*selected_indices2):
 
 
 
-if selected_indices != [] :
+if query != "" and selected_indices != [] :
     
     selected_indices2 = st.multiselect('Select rows:', output2.index)
     
     if selected_indices2 != []:
-        st.header("Linked assets:")
+        st.header("Linked Assets:")
         output3 = get_assets(selected_indices2)
         
         if isinstance(output3, str):
@@ -289,11 +296,12 @@ if selected_indices != [] :
         
 
             if output3b.empty:
-                st.header("Model results match associated Initiatives as per the Default Goal Catalogue.")
+                st.header("Model results match associated assets as per the Default Goal Catalogue.")
             else:
+                st.header("Recommended Engine suggestions not linked in the Default Goal Catalogue:")
                 st.table(output3b)
         
     else:
         st.warning('No option is selected')
 
-st.write('<style>div.Widget.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+#st.write('<style>div.Widget.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
